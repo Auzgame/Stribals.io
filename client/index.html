@@ -1,0 +1,97 @@
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href=./css/main.css>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js" integrity="sha384-/KNQL8Nu5gCHLqwqfQjA689Hhoqgi2S84SNUxC3roTe4EhJ9AfLkp8QiQcU8AMzI" crossorigin="anonymous"></script>
+    <script src="./js/player.js"></script>
+    <script src="./js/AT48.js"></script>
+    <script src="./js/keyboard.js"></script>
+    <script src="./js/mouseClick.js"></script>
+    <script src="./js/Bullet.js"></script>
+    <script src="./js/Box.js"></script>
+    <script src="./js/UI/healthBar.js"></script>
+    <script src="./js/UI/UI.js"></script>
+    <script crossorigin src="https://unpkg.com/@msgpack/msgpack"></script>
+    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <meta name="google-signin-client_id" content="984189853873-22auv1s5p2v3b1o6a5qtqi75j5c61cn1.apps.googleusercontent.com">
+  </head>
+  <body>
+    <div id='SignInDiv' data-auto_select="true"></div>
+    <div id="remove" style='text-align: center;'>
+      <h1> Stribels.io </h1>
+    </div>
+    <canvas id="game" width='0px' height='0px'></canvas>
+    <div class="GunSelection" width='auto' height='150px'>
+      <button class="weaponSelect" id="AT48 "onclick="setOption(this)">
+        <img class="weaponSelect" src="./images/assault-outline.png">
+      </button>
+      <button class="weaponSelect" id="StreetSweeper" onclick="setOption(this)">
+        <img class="weaponSelect" src="./images/shotgun-outline.png">
+      </button>
+    </div>
+    <input type="text" placeholder="Username" id="Username" autocomplete="on" style='position: absolute; left: 45%; top: 45%;'></input>
+    <button id="loadGame" style='position: absolute; left: 46%; top: 55%;' onclick="(function () {
+      if(document.querySelector('#Username').value == ''){
+        document.body.append(document.createElement('p').innerText = 'Enter a username first! ');
+        return;
+      }
+      window.name = document.querySelector('#Username').value;
+      localStorage.setItem('name', document.querySelector('#Username').value);
+      LoadJS('main.js')
+      document.getElementById('loadGame').remove();
+    })();">Join Game</button>
+
+    <button id="respawn" onclick='(function(){LoadJS("main.js");$("#respawn")[0].style.visibility = "hidden";})();'>
+      <h1>Respawn</h1> 
+    </button>
+    <!-- <script src="./js/main.js"></script> -->
+    <script type="text/javascript">
+      function LoadJS(name){
+        let main = document.createElement('script');
+        main.src = './js/'+name;
+        main.id = 'main';
+        console.log(main);
+        $('body')[0].append(main);
+      }
+      
+      function setOption(sel){
+        window.selection = sel.id;
+        try{
+          for (el in $('button.weaponSelect')){
+            if($('button.weaponSelect')[el].id != sel.id){
+              $('button.weaponSelect')[el].style.backgroundColor = 'white';
+            } else {
+              $('button.weaponSelect')[el].style.backgroundColor = 'grey';
+            }
+          }
+        } catch (er){console.log(`Weapon Select Error: ${er}`)}
+        console.log(sel.id);
+      }
+      (function () {
+        if(localStorage.getItem('name') != null){
+          document.querySelector('#Username').value = localStorage.getItem('name');
+        }
+      })();
+    </script>
+    <script type="text/javascript">
+      function handleCallbackResponse(response){
+        $('#SignInDiv')[0].remove();
+
+        window.response = response;
+        window.credential = response.credential;
+      }
+
+      window.addEventListener("load", (e) => {
+        google.accounts.id.initialize({
+          client_id: "984189853873-22auv1s5p2v3b1o6a5qtqi75j5c61cn1.apps.googleusercontent.com",
+          callback: handleCallbackResponse
+        });
+        google.accounts.id.renderButton(
+          document.getElementById('SignInDiv'),
+          { theme: 'outline', size: 'large'}
+        );
+      });
+    </script>
+  </body>
+</html>
