@@ -94,4 +94,13 @@ class UI {
     ctx.fill();
     ctx.restore();
   }
+  drawPing(ctx, ping) {
+    ctx.beginPath();
+    ctx.save();
+    ctx.font = "24px serif";
+    ctx.fillStyle = "#0DA711";
+    ctx.fillText(`Ping: ${ping}`, 60, 40);
+    ctx.fill();
+    ctx.restore();
+  }
 }
