@@ -1,8 +1,8 @@
 (function () {
   window.debug = false;
   const canvas = document.getElementById("game");
-  canvas.width = document.body.clientWidth;
-  canvas.height = document.body.clientHeight;
+  canvas.width = window.screen.width;
+  canvas.height = window.innerHeight;
   const ctx = canvas.getContext("2d");
   const myName = window.name;
   console.log(`Name: ${myName}`);
