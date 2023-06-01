@@ -135,7 +135,7 @@
       -Players[socket.id].y + canvas.height / 2
     );
     ctx.fillStyle = pat; // set the fill style
-    ctx.rect(0, 0, 1500, 1500); // create a rectangle
+    ctx.rect(0, 0, 2000, 2000); // create a rectangle
     ctx.fill(); // fill it with the pattern
     ctx.restore();
   }
@@ -144,6 +144,7 @@
     Ui.healthBar(ctx, canvas, Players[socket.id].health);
     Ui.drawLeaderBoard(ctx, canvas);
     Ui.drawAmmoCount(ctx, canvas, Players[socket.id]);
+    Ui.drawPing(ctx, lastPingTime);
   }
 
   socket.on("dead", () => {
@@ -167,17 +168,15 @@
 
   socket.emit("credential", window.credential || null);
 
-  var oldTime;
+  var lastPingTime = "Awaiting Ping";
 
   setInterval(() => {
-    if (window.ping == true) {
-      const start = Date.now();
+    const start = Date.now();
 
-      socket.emit("ping", () => {
-        const duration = Date.now() - start;
-        console.log(duration);
-      });
-    }
+    socket.emit("ping", () => {
+      const duration = Date.now() - start;
+      lastPingTime = duration;
+    });
   }, 1000);
 
   socket.on("update", () => {

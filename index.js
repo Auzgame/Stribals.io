@@ -19,6 +19,7 @@ var SOCKET_LIST = {};
 var Players = {};
 var Bullets = [];
 var Boxes = [];
+const botCount = 2;
 
 const io = require("socket.io")(serv, {});
 const admin = require("firebase-admin");
@@ -106,8 +107,8 @@ io.on("connection", function (socket) {
   }
   console.log("connection: " + socket.id + "\nName: " + name);
   SOCKET_LIST[socket.id] = socket;
-  let ranX = getRandomInt(0, 1500);
-  let ranY = getRandomInt(0, 1500);
+  let ranX = getRandomInt(0, 2000);
+  let ranY = getRandomInt(0, 2000);
   let canPlace = false;
 
   while (canPlace == false) {
@@ -157,14 +158,14 @@ io.on("connection", function (socket) {
     }
     if (
       data[0].keys.s == true &&
-      plr.y < 1500 &&
+      plr.y < 2000 &&
       !playerCollidesWithBox(plr.x, plr.y + 8).includes("bottom")
     ) {
       plr.y += 8;
     }
     if (
       data[0].keys.d == true &&
-      plr.x < 1500 &&
+      plr.x < 2000 &&
       !playerCollidesWithBox(plr.x + 8, plr.y).includes("right")
     ) {
       plr.x += 8;
@@ -454,7 +455,7 @@ function init(boxes) {
 
 init(Boxes);
 
-for (let b = 1; b < 5; b++) {
+for (let b = 1; b < 3; b++) {
   let canPlace = false;
   let ranX = getRandomInt(0, 1499);
   let ranY = getRandomInt(0, 1499);
@@ -488,7 +489,7 @@ for (let b = 1; b < 5; b++) {
 
 function botStuff() {
   try {
-    for (let b = 1; b < 5; b++) {
+    for (let b = 1; b < 3; b++) {
       if (!Players["Bot" + b]) {
         let canPlace = false;
         let ranX = getRandomInt(0, 1499);
@@ -534,7 +535,7 @@ function botStuff() {
 }
 
 function botRotate() {
-  for (let b = 1; b < 5; b++) {
+  for (let b = 1; b < 3; b++) {
     if (!Players["Bot" + b]) {
       continue;
     }
@@ -554,7 +555,7 @@ function botRotate() {
   }
 }
 function sendBots() {
-  for (let b = 1; b < 5; b++) {
+  for (let b = 1; b < 3; b++) {
     if (!Players["Bot" + b]) {
       continue;
     }
