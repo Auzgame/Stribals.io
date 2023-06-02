@@ -43,6 +43,7 @@
 
   const WepAT48 = new AT48(null);
   const Ui = new UI();
+  const Shop = new shop();
   Ui.leaders = [];
 
   function playerUpdate(Data) {
@@ -151,6 +152,8 @@
   var items;
   socket.on("dead", (data) => {
     items = data;
+    Shop.createButtons(canvas, items);
+    Shop.drawButtons(ctx);
     isDead = true;
   });
 

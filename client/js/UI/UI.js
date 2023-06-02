@@ -105,7 +105,6 @@ class UI {
   }
   drawHealthGradiant(ctx, canvas, health) {
     let healthFactor = 400 - health * 4;
-    console.log(healthFactor);
     //beginGradient
     ctx.beginPath();
     ctx.arc(0, 0, healthFactor, 0, 2 * Math.PI, false);
