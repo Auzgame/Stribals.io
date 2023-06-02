@@ -141,13 +141,16 @@
   }
 
   function drawUI() {
+    Ui.drawHealthGradiant(ctx, canvas, Players[socket.id].health);
     Ui.healthBar(ctx, canvas, Players[socket.id].health);
     Ui.drawLeaderBoard(ctx, canvas);
     Ui.drawAmmoCount(ctx, canvas, Players[socket.id]);
     Ui.drawPing(ctx, lastPingTime);
   }
 
-  socket.on("dead", () => {
+  var items;
+  socket.on("dead", (data) => {
+    items = data;
     isDead = true;
   });
 

@@ -2,6 +2,7 @@ const jwt_decode = require("jwt-decode");
 const Player = require("./Player");
 const Box = require("./Box");
 const Bot = require("./Bot");
+const Shop = require("./Shop");
 const msgpack = require("@msgpack/msgpack");
 let Coder = require("./Coder");
 Coder = new Coder();
@@ -261,7 +262,7 @@ function bulletCollidedWithPlayer() {
                 updateDBKills(Players[bul.owner].getId());
               }
               try {
-                SOCKET_LIST[Players[j].id].emit("dead");
+                SOCKET_LIST[Players[j].id].emit("dead", Shop.items);
               } catch (err) {}
               delete Players[j];
             }
