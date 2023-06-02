@@ -103,4 +103,68 @@ class UI {
     ctx.fill();
     ctx.restore();
   }
+  drawHealthGradiant(ctx, canvas, health) {
+    let healthFactor = 400 - health * 4;
+    console.log(healthFactor);
+    //beginGradient
+    ctx.beginPath();
+    ctx.arc(0, 0, healthFactor, 0, 2 * Math.PI, false);
+    var grd = ctx.createRadialGradient(0, 0, 0, 0, 0, healthFactor);
+    grd.addColorStop(1, "transparent");
+    grd.addColorStop(0.1, "rgba(255, 0, 0, 1");
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.closePath();
+
+    // Create gradient
+    ctx.beginPath();
+    ctx.arc(canvas.width, 0, healthFactor, 0, 2 * Math.PI, false);
+    var grd = ctx.createRadialGradient(
+      canvas.width,
+      0,
+      0,
+      canvas.width,
+      0,
+      healthFactor
+    );
+    grd.addColorStop(1, "transparent");
+    grd.addColorStop(0.1, "rgba(255, 0, 0, 1");
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.closePath();
+
+    // Create gradient
+    ctx.beginPath();
+    ctx.arc(canvas.width, canvas.height, healthFactor, 0, 2 * Math.PI, false);
+    var grd = ctx.createRadialGradient(
+      canvas.width,
+      canvas.height,
+      0,
+      canvas.width,
+      canvas.height,
+      healthFactor
+    );
+    grd.addColorStop(1, "transparent");
+    grd.addColorStop(0.1, "rgba(255, 0, 0, 1");
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.closePath();
+
+    // Create gradient
+    ctx.beginPath();
+    ctx.arc(0, canvas.height, healthFactor, 0, 2 * Math.PI, false);
+    var grd = ctx.createRadialGradient(
+      0,
+      canvas.height,
+      0,
+      0,
+      canvas.height,
+      healthFactor
+    );
+    grd.addColorStop(1, "transparent");
+    grd.addColorStop(0.1, "rgba(255, 0, 0, 1");
+    ctx.fillStyle = grd;
+    ctx.fill();
+    ctx.closePath();
+  }
 }
