@@ -16,7 +16,7 @@ class Button {
     );
   }
 }
-class Shop {
+class shop {
   constructor() {
     this.Items = [];
   }
