@@ -23,20 +23,21 @@ class shop {
   createButtons(canvas, items) {
     for (var i in items) {
       let curItem = items[i];
-      let xPlace = canvas.width * ((this.Items % 3) + 1 / 3);
-      let yPlace = Math.floor(this.Items / 3);
+      let canvasOffset = canvas.width - 1200;
+      let xPlace = canvasOffset * ((this.Items.length % 5) + 1 / 5);
+      let yPlace = Math.floor(this.Items.length / 3) + 200;
       let but = new Button(xPlace, yPlace, curItem);
       this.Items.push(but);
     }
+    console.log(this.Items);
   }
-  drawButtons(ctx) {
+  drawButtons() {
     for (var i in this.Items) {
       let curItem = this.Items[i];
-      ctx.beginPath();
-      ctx.fillStyle = "#0D9DD3";
-      ctx.fillRect(curItem.x, curItem.y, curItem.width, curItem.height);
-      ctx.fill();
-      ctx.closePath();
+      let el = document.createElement('id');
+      el.style.position = 'absolute';
+      el.style.left = curItem.x;
+      el.style.up = curItem.y;
     }
   }
 }

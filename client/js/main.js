@@ -152,13 +152,14 @@
   var items;
   socket.on("dead", (data) => {
     items = data;
-    Shop.createButtons(canvas, items);
-    Shop.drawButtons(ctx);
+    window.items = items;
     isDead = true;
   });
 
   function deathScreen() {
     Ui.deathScreen(ctx, canvas);
+    Shop.createButtons(canvas, items);
+    Shop.drawButtons(ctx);
     $("#respawn")[0].style.visibility = "visible";
     socket.off("update");
     socket.close();
