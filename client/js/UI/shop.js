@@ -34,10 +34,38 @@ class shop {
   drawButtons() {
     for (var i in this.Items) {
       let curItem = this.Items[i];
-      let el = document.createElement('id');
-      el.style.position = 'absolute';
+      let el = document.createElement("button");
+      el.className = "SHOPBUTTONS";
+      el.style.position = "absolute";
       el.style.left = curItem.x;
-      el.style.up = curItem.y;
+      el.style.top = curItem.y;
+      el.style.width = curItem.width + "px";
+      el.style.height = curItem.height + "px";
+      el.style.visibility = "hidden";
+      el.innerText = curItem.item + ": " + curItem.price;
+      document.body.prepend(el);
     }
+  }
+  openShopButton() {
+    let but = document.createElement("button");
+    let isOpenShop = false;
+    but.addEventListener("click", () => {
+      for (let i = 0; i < $(".SHOPBUTTONS").length; i++) {
+        if (isOpenShop == true) {
+          $(".SHOPBUTTONS")[i].style.visibility = "hidden";
+        } else {
+          $(".SHOPBUTTONS")[i].style.visibility = "visible";
+        }
+      }
+      isOpenShop = !isOpenShop;
+    });
+    but.style.position = "absolute";
+    but.style.left = document.body.clientWidth / 2 - 50 + "px";
+    but.style.top = document.body.clientHeight / 2 + 75 + "px";
+    but.style.width = "200px";
+    but.style.height = "100px";
+    but.innerText = "TOGGLE SHOP";
+    but.id = "shop";
+    document.body.prepend(but);
   }
 }

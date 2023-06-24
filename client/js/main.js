@@ -159,7 +159,8 @@
   function deathScreen() {
     Ui.deathScreen(ctx, canvas);
     Shop.createButtons(canvas, items);
-    Shop.drawButtons(ctx);
+    Shop.drawButtons();
+    Shop.openShopButton();
     $("#respawn")[0].style.visibility = "visible";
     socket.off("update");
     socket.close();

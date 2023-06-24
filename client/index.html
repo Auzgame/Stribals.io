@@ -43,7 +43,14 @@
       document.getElementById('loadGame').remove();
     })();">Join Game</button>
 
-    <button id="respawn" onclick='(function(){LoadJS("main.js");$("#respawn")[0].style.visibility = "hidden";})();'>
+    <button id="respawn" onclick='(function(){
+      LoadJS("main.js");
+      $("#respawn")[0].style.visibility = "hidden";
+      $("#shop")[0].remove();
+      for(let x=0;x<$(`.SHOPBUTTONS`).length;x++){
+        $(`.SHOPBUTTONS`)[x].style.visibility = `hidden`;
+        }
+      })();'>
       <h1>Respawn</h1> 
     </button>
     <!-- <script src="./js/main.js"></script> -->
