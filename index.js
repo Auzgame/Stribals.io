@@ -131,6 +131,10 @@ io.on("connection", function (socket) {
     Players[socket.id].name,
     Players[socket.id].selectedGun,
     Players[socket.id].isReloading,
+    Players[socket.id].isShooting == Players[socket.id].canShoot &&
+    Players[socket.id].isReloading == null
+      ? true
+      : false,
   ];
   io.sockets.emit("UpdatedPlr", msgpack.encode(pack));
 
@@ -194,7 +198,9 @@ io.on("connection", function (socket) {
       plr.name,
       plr.selectedGun,
       plr.isReloading,
+      plr.isShooting == plr.canShoot && plr.isReloading == null ? true : false,
     ];
+
     io.sockets.emit("UpdatedPlr", msgpack.encode(pack));
   });
 
@@ -288,19 +294,6 @@ function bulletCollidedWithBox() {
   }
 }
 
-function sendBullets() {
-  let pack = ["1b"];
-  for (i in Bullets) {
-    let bul = Bullets[i];
-    pack.push(bul.x);
-    pack.push(bul.y);
-  }
-
-  if (pack.length > 1) {
-    io.sockets.emit("UpdatedPlr", msgpack.encode(pack));
-  }
-}
-
 function bulletActions() {
   bulletCollidedWithPlayer();
   bulletCollidedWithBox();
@@ -316,7 +309,6 @@ function bulletActions() {
     }
     bul.updatePosition();
   }
-  sendBullets();
 }
 
 function isBoxValid(x, y) {
@@ -571,6 +563,7 @@ function sendBots() {
       plr.name,
       plr.selectedGun,
       plr.isReloading,
+      plr.isShooting == plr.canShoot && plr.isReloading == null ? true : false,
     ];
     io.sockets.emit("UpdatedPlr", msgpack.encode(pack));
   }

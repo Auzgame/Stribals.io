@@ -57,26 +57,92 @@
       Data[5], // Health
       Data[8], //isReloading
       Data[7], //SelectedGun
-      Data[4] //kills
+      Data[4], //kills
+      Data[9] // isShooting
     );
 
     let tmpArr = [];
     for (let i in Players) {
       tmpArr.push(Players[i]);
+      if (Players[i].isShooting == true) {
+        if (Players[i].selectedGun.type == "AT48") {
+          Bullets.push(
+            new Bullet(
+              Players[i].x,
+              Players[i].y,
+              Players[i].rotation,
+              20,
+              1000
+            )
+          );
+        } else if (Players[i].selectedGun.type == "StreetSweeper") {
+          Bullets.push(
+            new Bullet(Players[i].x, Players[i].y, Players[i].rotation, 40, 350)
+          );
+          Bullets.push(
+            new Bullet(
+              Players[i].x,
+              Players[i].y,
+              Players[i].rotation - 2,
+              40,
+              350
+            )
+          );
+          Bullets.push(
+            new Bullet(
+              Players[i].x,
+              Players[i].y,
+              Players[i].rotation - 4,
+              40,
+              350
+            )
+          );
+          Bullets.push(
+            new Bullet(
+              Players[i].x,
+              Players[i].y,
+              Players[i].rotation + 2,
+              40,
+              350
+            )
+          );
+          Bullets.push(
+            new Bullet(
+              Players[i].x,
+              Players[i].y,
+              Players[i].rotation + 4,
+              40,
+              350
+            )
+          );
+        }
+      }
     }
     Ui.leaders = tmpArr;
   }
 
-  function bulletUpdate(Data) {
-    Bullets = [];
-    Data = Data.splice(1, Data.length);
-    window.BulData = Data;
-    while (Data.length > 0) {
-      let y = Data.pop();
-      let x = Data.pop();
-      Bullets.push(new Bullet(x, y));
+  function bulletUpdate() {
+    for (let i = 0; i < Bullets.length; i++) {
+      if (Bullets[i].shouldDie < new Date().getTime()) {
+        let index = Bullets.indexOf(Bullets[i]);
+        Bullets.splice(index, 1);
+      } else {
+        Bullets[i].updatePosition();
+        for (let j in Boxes) {
+          if (Bullets[i].isCollidingWithBox(Boxes[j].x, Boxes[j].y) == true) {
+            let index = Bullets.indexOf(Bullets[i]);
+            Bullets.splice(index, 1);
+          }
+        }
+        for (let j in Players) {
+          let plr = Players[j];
+          if (Bullets[i].isCollidingWithPlayer(plr.x, plr.y) == true) {
+            let index = Bullets.indexOf(Bullets[i]);
+            Bullets.splice(index, 1);
+          }
+        }
+      }
     }
-    window.Bullets = Bullets;
   }
 
   function drawBullets() {
@@ -211,20 +277,17 @@
     window.socketId = socket.id;
     window.data = data;
 
-    if (data[0] == "1b") {
-      bulletUpdate(data);
-    } else {
-      playerUpdate(data);
+    playerUpdate(data);
+    bulletUpdate();
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      drawLayout();
-      drawBoxes(Boxes);
-      drawPlayers();
-      drawBullets();
+    drawLayout();
+    drawBoxes(Boxes);
+    drawPlayers();
+    drawBullets();
 
-      drawUI();
-    }
+    drawUI();
   });
 
   document.addEventListener("mousemove", (e) => {

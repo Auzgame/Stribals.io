@@ -9,7 +9,8 @@ class Player {
     health,
     isReloading,
     selectedGun,
-    Kills
+    Kills,
+    isShooting
   ) {
     this.x = x;
     this.y = y;
@@ -22,6 +23,7 @@ class Player {
     this.isReloading = isReloading;
     this.selectedGun = selectedGun;
     this.kills = Kills || 0;
+    this.isShooting = isShooting;
   }
   static rotate(cx, cy, x, y, angle) {
     var radians = (Math.PI / 180) * angle,
