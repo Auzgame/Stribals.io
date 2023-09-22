@@ -8,7 +8,7 @@ app.get("/", function (req, res) {
 app.use(express.static("client"));
 serv.listen(3000);
 console.log("server started");
-var SOCKET_LIST = {};
+var SOCKET_LIST = [];
 var Players = {};
 var Bullets = [];
 
@@ -66,12 +66,14 @@ function getRandomInt(min, max) {
 }
 
 io.on("connection", function (socket) {
+  console.log("connection: " + socket.id);
   SOCKET_LIST.push(socket);
 
-  socket.on("disconnection",()){
+  socket.on("disconnection", function () {
+    console.log("disconnection: " + socket.id);
     let x = SOCKET_LIST.indexOf(socket);
-    SOCKET_LIST.splice(x,1);
-  }
+    SOCKET_LIST.splice(x, 1);
+  });
 });
 
 /*(async function () {
