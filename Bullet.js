@@ -1,3 +1,4 @@
+let bulletCounter = 0;
 module.exports = class Bullet {
   constructor(x, y, owner, damage, rotation, alive, speed) {
     this.x = x;
@@ -7,6 +8,7 @@ module.exports = class Bullet {
     this.dy = Math.sin(((this.rotation - 90) * Math.PI) / 180);
     this.size = 5;
     this.owner = owner;
+    this.id = bulletCounter++;
     this.damage = damage;
     this.speed = speed;
     this.shouldDie = new Date().getTime() + alive;
@@ -15,7 +17,7 @@ module.exports = class Bullet {
       this.x,
       this.y,
       this.x - 12,
-      this.y - 90,
+      this.y - 0,
       this.rotation
     );
     this.x = cx;
@@ -39,15 +41,43 @@ module.exports = class Bullet {
     );
   }
   */
-  isCollidingWithPlayer(ox, oy) {
-    if (this.y + 4 > oy - 15 && this.y < oy + 15) {
-      if (this.x + 4 > ox - 15 && this.x < ox + 15) {
-        return true;
-      }
-    } else {
-      return false;
-    }
+  isCollidingWithPlayer(ox, oy, radius = 20) {
+    // Previous bullet position
+    const x1 = this.x - this.dx * this.speed;
+    const y1 = this.y - this.dy * this.speed;
+
+    // Current bullet position
+    const x2 = this.x;
+    const y2 = this.y;
+
+    // Player position
+    const cx = ox;
+    const cy = oy;
+
+    // Vector AB
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    // Project point C onto AB (clamped 0–1)
+    const t = Math.max(
+      0,
+      Math.min(
+        1,
+        ((cx - x1) * dx + (cy - y1) * dy) / (dx * dx + dy * dy)
+      )
+    );
+
+    // Closest point on segment
+    const px = x1 + t * dx;
+    const py = y1 + t * dy;
+
+    // Distance from player to bullet path
+    const distSq = (cx - px) ** 2 + (cy - py) ** 2;
+
+    return distSq <= radius * radius;
   }
+
+
   isCollidingWithBox(ox, oy) {
     let futY = this.y + this.dy * this.speed;
     let futX = this.x + this.dx * this.speed;

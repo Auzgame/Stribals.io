@@ -47,103 +47,43 @@
   Ui.leaders = [];
 
   function playerUpdate(Data) {
-    Players[Data[0]] = new Player(
-      Data[1], //X
-      Data[2], //Y
-      0, //Power
-      Data[0], // ID
-      Data[3], // Rotation
-      Data[6], // Name
-      Data[5], // Health
-      Data[8], //isReloading
-      Data[7], //SelectedGun
-      Data[4], //kills
-      Data[9] // isShooting
-    );
+    window.Players = Players;
+
+    if(Players[Data[0]] instanceof Player == false){
+      Players[Data[0]] = new Player(
+        Data[1], //X
+        Data[2], //Y
+        0, //Power
+        Data[0], // ID
+        Data[3], // Rotation
+        Data[6], // Name
+        Data[5], // Health
+        Data[8], //isReloading
+        Data[7], //SelectedGun
+        Data[4], //kills
+        Data[9] // isShooting
+      );
+    } else {
+      if(isNaN(Players[Data[0]].x) || isNaN(Players[Data[0]].y) || isNaN(Players[Data[0]].rotation)) {
+        Players[Data[0]].x = Data[1];
+        Players[Data[0]].y = Data[2];
+        Players[Data[0]].rotation = Data[3];
+      };
+      Players[Data[0]].updatePos(Data[1], Data[2], Data[3]);
+      Players[Data[0]].health = Data[5];
+      Players[Data[0]].isReloading = Data[8];
+      Players[Data[0]].selectedGun = Data[7];
+      Players[Data[0]].kills = Data[4];
+      Players[Data[0]].isShooting = Data[9];
+    }
 
     let tmpArr = [];
     for (let i in Players) {
       tmpArr.push(Players[i]);
-      if (Players[i].isShooting == true) {
-        if (Players[i].selectedGun.type == "AT48") {
-          Bullets.push(
-            new Bullet(
-              Players[i].x,
-              Players[i].y,
-              Players[i].rotation,
-              20,
-              1000
-            )
-          );
-        } else if (Players[i].selectedGun.type == "StreetSweeper") {
-          Bullets.push(
-            new Bullet(Players[i].x, Players[i].y, Players[i].rotation, 40, 350)
-          );
-          Bullets.push(
-            new Bullet(
-              Players[i].x,
-              Players[i].y,
-              Players[i].rotation - 2,
-              40,
-              350
-            )
-          );
-          Bullets.push(
-            new Bullet(
-              Players[i].x,
-              Players[i].y,
-              Players[i].rotation - 4,
-              40,
-              350
-            )
-          );
-          Bullets.push(
-            new Bullet(
-              Players[i].x,
-              Players[i].y,
-              Players[i].rotation + 2,
-              40,
-              350
-            )
-          );
-          Bullets.push(
-            new Bullet(
-              Players[i].x,
-              Players[i].y,
-              Players[i].rotation + 4,
-              40,
-              350
-            )
-          );
-        }
-      }
     }
     Ui.leaders = tmpArr;
   }
 
-  function bulletUpdate() {
-    for (let i = 0; i < Bullets.length; i++) {
-      if (Bullets[i].shouldDie < new Date().getTime()) {
-        let index = Bullets.indexOf(Bullets[i]);
-        Bullets.splice(index, 1);
-      } else {
-        Bullets[i].updatePosition();
-        for (let j in Boxes) {
-          if (Bullets[i].isCollidingWithBox(Boxes[j].x, Boxes[j].y) == true) {
-            let index = Bullets.indexOf(Bullets[i]);
-            Bullets.splice(index, 1);
-          }
-        }
-        for (let j in Players) {
-          let plr = Players[j];
-          if (Bullets[i].isCollidingWithPlayer(plr.x, plr.y) == true) {
-            let index = Bullets.indexOf(Bullets[i]);
-            Bullets.splice(index, 1);
-          }
-        }
-      }
-    }
-  }
 
   function drawBullets() {
     for (var i in Bullets) {
@@ -278,26 +218,73 @@
     window.data = data;
 
     playerUpdate(data);
-    bulletUpdate();
+  });
+
+  
+  socket.on("updateBullets", (serverBullets) => {
+    const now = performance.now();
+
+    for (const sb of serverBullets) {
+      let bullet = Bullets.find(b => b.id === sb.id);
+
+      if (!bullet) {
+        bullet = new Bullet(sb.x, sb.y, 0, sb.speed, sb.id, sb.dx, sb.dy);
+        bullet.lastServerUpdate = now;
+        Bullets.push(bullet);
+      } else {
+          bullet.serverX = sb.x;
+          bullet.serverY = sb.y;
+          bullet.dx = sb.dx;
+          bullet.dy = sb.dy;
+          bullet.speed = sb.speed;
+          bullet.lastServerUpdate = now;
+        bullet.applyServerUpdate(sb);
+      }
+    }
+
+    // Optionally remove bullets that are dead on server
+    Bullets = Bullets.filter(b => serverBullets.find(sb => sb.id === b.id));
+  });
+
+
+
+  
+
+  let lastUpdateTime = performance.now();
+  function render(){
+    const now = performance.now();
+    const deltaTime = (now - lastUpdateTime)/1000;
+    lastUpdateTime = now;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    if(!Players[socket.id]){
+      requestAnimationFrame(render);
+      return;
+    }
     drawLayout();
     drawBoxes(Boxes);
+
+    for(let i in Players){
+      Players[i].interpolatePosition(deltaTime);
+    }
+    
     drawPlayers();
+
+    Bullets.forEach(b => b.updatePosition(deltaTime));
     drawBullets();
 
     drawUI();
-  });
+    requestAnimationFrame(render);
+  }
+  requestAnimationFrame(render);
 
   document.addEventListener("mousemove", (e) => {
-    let angle =
-      Math.atan2(
-        e.clientX - canvas.width / 2,
-        -(e.clientY - canvas.height / 2)
-      ) *
-      (180 / Math.PI);
+    let dx = e.clientX - canvas.width / 2;
+    let dy = e.clientY - canvas.height / 2;
+    let angle = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
     Rotation = angle;
     //console.log(Rotation)
   });
+
 })();

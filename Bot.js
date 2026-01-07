@@ -1,10 +1,12 @@
 const Player = require("./Player");
 const Bullet = require("./Bullet");
+const { Worker } = require("worker_threads");
 module.exports = class Bot extends Player {
   constructor(x, y, power, id, rotation, name, selectedGun, health, boxes) {
     super(x, y, power, id, rotation, name, selectedGun, health);
     this.moveDelay = Date.now() + 100;
     this.needsMove = false;
+    this.isPathFinding = false;
   }
   fire() {
     let ran = Math.floor(Math.random() * (20 - -20 + 1)) + -20;
@@ -138,99 +140,35 @@ module.exports = class Bot extends Player {
   }
 
   pathFinding(Boxes, grd, clsedSet) {
-    let openSet = []; //array containing unevaluated grid points
-    let closedSet = clsedSet.slice(); //array containing completely evaluated grid points
-    let start; //starting grid point
-    let grid = grd;
-    let end; // ending grid point (goal)
-    let path = [];
+    return new Promise((resolve, reject) => {
+      const worker = new Worker("./pathFindingWorker.js");
 
-    //heuristic we will be using - Manhattan distance
-    //for other heuristics visit - https://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
-    function heuristic(position0, position1) {
-      let d1 = Math.abs(position1.x - position0.x);
-      let d2 = Math.abs(position1.y - position0.y);
+      // Send data to the worker
+      worker.postMessage({
+        boxes: Boxes.map(b => ({ x: b.x, y: b.y, size: b.size })),
+        start: { x: Math.floor(this.x / 10), y: Math.floor(this.y / 10) },
+        end: { x: Math.floor(this.dstX / 10), y: Math.floor(this.dstY / 10) }
+      });
 
-      return d1 + d2;
-    }
-    //initializing the grid
-    function init(x, y, dstX, dstY, Boxes) {
-      start = grid[x][y];
-      end = grid[dstX][dstY];
+      // Listen for the result
+      worker.on("message", (path) => {
+        resolve(path);
+        worker.terminate();
+      });
 
-      while (!end) {
-        console.log("Somtin Rong with end: ", grid[dstX][dstY]);
-        let newX,
-          newY = rePickPoint(Boxes);
-        end = grid[newX][newY];
-      }
+      // Handle errors
+      worker.on("error", (err) => {
+        reject(err);
+        worker.terminate();
+      });
 
-      openSet.push(start);
-    }
-
-    //A star search implementation
-
-    function search(x, y, dstX, dstY, Boxes) {
-      init(x, y, dstX, dstY, Boxes);
-      while (openSet.length > 0) {
-        //assumption lowest index is the first one to begin with
-        let lowestIndex = 0;
-        for (let i = 0; i < openSet.length; i++) {
-          if (openSet[i].f < openSet[lowestIndex].f) {
-            lowestIndex = i;
-          }
+      // Handle worker exit
+      worker.on("exit", (code) => {
+        if (code !== 0) {
+          reject(new Error(`Worker stopped with exit code ${code}`));
         }
-        let current = openSet[lowestIndex];
-
-        if (current === end) {
-          let temp = current;
-          path.push(temp);
-          while (temp.parent && !path.includes(temp.parent)) {
-            path.push(temp.parent);
-            temp = temp.parent;
-          }
-          // return the traced path
-          return path.reverse();
-        }
-
-        //remove current from openSet
-        openSet.splice(lowestIndex, 1);
-        //add current to closedSet
-        closedSet.push(current);
-
-        let neighbors = current.neighbors;
-
-        for (let i = 0; i < neighbors.length; i++) {
-          let neighbor = neighbors[i];
-
-          if (!closedSet.includes(neighbor)) {
-            let possibleG = current.g + 1;
-
-            if (!openSet.includes(neighbor)) {
-              openSet.push(neighbor);
-            } else if (possibleG >= neighbor.g) {
-              continue;
-            }
-
-            neighbor.g = possibleG;
-            neighbor.h = heuristic(neighbor, end);
-            neighbor.f = neighbor.g + neighbor.h;
-            neighbor.parent = current;
-          }
-        }
-      }
-
-      //no solution by default
-      return [];
-    }
-    this.needsMove = false;
-    return search(
-      Math.floor(this.x / 10),
-      Math.floor(this.y / 10),
-      Math.floor(this.dstX / 10),
-      Math.floor(this.dstY / 10),
-      Boxes
-    );
+      });
+    });
   }
 
   nextMove(moves) {

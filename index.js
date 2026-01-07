@@ -25,6 +25,7 @@ const botCount = 2;
 const io = require("socket.io")(serv, {});
 const admin = require("firebase-admin");
 const credentials = require("./terrible-shooters-firebase-adminsdk-cirkf-e9a7798540.json");
+const { tmpdir } = require("os");
 
 admin.initializeApp({
   credential: admin.credential.cert(credentials),
@@ -143,6 +144,7 @@ io.on("connection", function (socket) {
   });
   socket.emit("boxes", Boxes);
   socket.on("plrUpdate", (data) => {
+    let speed = 10;
     let plr = Players[socket.id];
     if (!plr) {
       return;
@@ -152,28 +154,28 @@ io.on("connection", function (socket) {
       plr.y > 0 &&
       !playerCollidesWithBox(plr.x, plr.y).includes("top")
     ) {
-      plr.y -= 8;
+      plr.y -= speed;
     }
     if (
       data[0].keys.a == true &&
       plr.x > 0 &&
       !playerCollidesWithBox(plr.x - 8, plr.y).includes("left")
     ) {
-      plr.x -= 8;
+      plr.x -= speed;
     }
     if (
       data[0].keys.s == true &&
       plr.y < 2000 &&
       !playerCollidesWithBox(plr.x, plr.y + 8).includes("bottom")
     ) {
-      plr.y += 8;
+      plr.y += speed;
     }
     if (
       data[0].keys.d == true &&
       plr.x < 2000 &&
       !playerCollidesWithBox(plr.x + 8, plr.y).includes("right")
     ) {
-      plr.x += 8;
+      plr.x += speed;
     }
 
     if (data[0].keys.r == true && plr.isReloading == null) {
@@ -258,8 +260,7 @@ function bulletCollidedWithPlayer() {
       if (bul.isCollidingWithPlayer(plr.x, plr.y) && plr.id != bul.owner) {
         plr.health -= bul.damage;
         //deleteBullet(bul);
-        let index = Bullets.indexOf(Bullets[i]);
-        Bullets.splice(index, 1);
+        delete Bullets[i];
         if (plr.health <= 0) {
           try {
             if (Players[bul.owner]) {
@@ -287,8 +288,7 @@ function bulletCollidedWithBox() {
     for (j in Boxes) {
       let bx = Boxes[j];
       if (bul.isCollidingWithBox(bx.x, bx.y)) {
-        let index = Bullets.indexOf(Bullets[i]);
-        Bullets.splice(index, 1);
+        delete Bullets[i];
       }
     }
   }
@@ -303,11 +303,17 @@ function bulletActions() {
       break;
     }
     if (bul.shouldDie <= new Date().getTime()) {
-      //deleteBullet(Bullets[i]);
-      let index = Bullets.indexOf(Bullets[i]);
-      Bullets.splice(index, 1);
+      delete Bullets[i];
     }
-    bul.updatePosition();
+  }
+  tmpAr = []; //Clean Array
+  for(let i in Bullets) {
+    tmpAr.push(Bullets[i]);
+  }
+  Bullets = tmpAr;
+
+  for (let i in Bullets) {
+    Bullets[i].updatePosition();
   }
 }
 
@@ -448,7 +454,10 @@ function init(boxes) {
 
 init(Boxes);
 
-for (let b = 1; b < 3; b++) {
+
+//Create Bots
+const numBots = 2;
+for (let b = 1; b <= numBots; b++) {
   let canPlace = false;
   let ranX = getRandomInt(0, 1499);
   let ranY = getRandomInt(0, 1499);
@@ -482,7 +491,7 @@ for (let b = 1; b < 3; b++) {
 
 function botStuff() {
   try {
-    for (let b = 1; b < 3; b++) {
+    for (let b = 1; b <= numBots; b++) {
       if (!Players["Bot" + b]) {
         let canPlace = false;
         let ranX = getRandomInt(0, 1499);
@@ -513,11 +522,23 @@ function botStuff() {
         Players["Bot" + b].needsMove = true;
       }
       if (Players["Bot" + b] && Players["Bot" + b].needsMove == true) {
-        Players["Bot" + b].pickPoint(Boxes);
-        moves = Players["Bot" + b].pathFinding(Boxes, grid, closedSet);
-        //console.log("PATHFINDING COMPLETE");
+
+        if(Players["Bot" + b].isPathFinding) return;
+
+        Players["Bot" + b].isPathFinding = true;
         Players["Bot" + b].needsMove = false;
-        Players["Bot" + b].nextMove(moves);
+
+        Players["Bot" + b].pickPoint(Boxes);
+
+        Players["Bot" + b].pathFinding(Boxes, grid, closedSet)
+          .then(moves => {
+              Players["Bot" + b].nextMove(moves);
+          })
+          .finally(() => {
+            Players["Bot" + b].isPathFinding = false;
+            //console.log("PATHFINDING COMPLETE");
+          });        
+        //Players["Bot" + b].nextMove(moves);
       }
     }
     botRotate();
@@ -528,7 +549,7 @@ function botStuff() {
 }
 
 function botRotate() {
-  for (let b = 1; b < 3; b++) {
+  for (let b = 1; b <= numBots; b++) {
     if (!Players["Bot" + b]) {
       continue;
     }
@@ -548,7 +569,7 @@ function botRotate() {
   }
 }
 function sendBots() {
-  for (let b = 1; b < 3; b++) {
+  for (let b = 1; b <= numBots; b++) {
     if (!Players["Bot" + b]) {
       continue;
     }
@@ -575,16 +596,32 @@ io.on("connection", (socket) => {
   });
 });
 
+// Periodically broadcast bullet states to clients
+setInterval(() => {
+  const bulletStates = Bullets.map((bullet) => ({
+    x: bullet.x,
+    y: bullet.y,
+    id: bullet.id,
+    dx: bullet.dx,
+    dy: bullet.dy,
+    speed: bullet.speed,
+    owner: bullet.owner,
+  }));
+
+  io.sockets.emit("updateBullets", bulletStates);
+}, 1000 / 30); // Broadcast 30 times per second
+
+
 var update = setInterval(function () {
   playerActions();
   bulletActions();
   botStuff();
   //console.log("Updated");
-}, 1000 / 60);
+}, 1000 / 20);
 
 var updateClients = setInterval(() => {
   io.local.emit("update");
-}, 1000 / 30);
+}, 1000 / 60);
 /*(async function () {
   const readline = require("readline");
   const rl = readline.createInterface({

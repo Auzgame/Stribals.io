@@ -39,6 +39,24 @@ class Player {
   getBar() {
     return this.hpBar;
   }
+
+  updatePos(x, y, rotation) {
+    this.targetX = x;
+    this.targetY = y;
+    this.targetR = rotation;
+  }
+
+  interpolatePosition(deltaTime) {
+    const lerpFactor = 20; // Adjust this value for smoother or faster interpolation
+    
+    // Interpolate X position
+    this.x += (this.targetX - this.x) * lerpFactor * deltaTime;
+    // Interpolate Y position
+    this.y += (this.targetY - this.y) * lerpFactor * deltaTime;
+    // Interpolate Rotation
+    this.rotation += (this.targetR - this.rotation) * lerpFactor * 2 * deltaTime;
+  }
+
   drawUser(ctx, canvas) {
     //BODY
     ctx.beginPath();

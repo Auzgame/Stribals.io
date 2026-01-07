@@ -1,32 +1,18 @@
 class Bullet {
-  constructor(x, y, rotation, speed, alive) {
+  constructor(x, y, rotation = 0, speed = 0, id = null, dx = null, dy = null) {
     this.x = x;
     this.y = y;
     this.rotation = rotation;
-    this.dx = Math.cos(((this.rotation - 90) * Math.PI) / 180);
-    this.dy = Math.sin(((this.rotation - 90) * Math.PI) / 180);
+    this.dx = dx ?? Math.cos(((rotation - 90) * Math.PI) / 180);
+    this.dy = dy ?? Math.sin(((rotation - 90) * Math.PI) / 180);
     this.speed = speed;
-    this.shouldDie = new Date().getTime() + alive;
 
-    let [cx, cy] = Bullet.rotate(
-      this.x,
-      this.y,
-      this.x - 12,
-      this.y - 90,
-      this.rotation
-    );
-    this.x = cx;
-    this.y = cy;
+    this.id = id;
+    this.lastUpdate = performance.now();
+    this.lastServerX = x;
+    this.lastServerY = y;
   }
 
-  static rotate(cx, cy, x, y, angle) {
-    var radians = (Math.PI / 180) * angle,
-      cos = Math.cos(radians),
-      sin = Math.sin(radians),
-      nx = cos * (x - cx) - sin * (y - cy) + cx,
-      ny = cos * (y - cy) + sin * (x - cx) + cy;
-    return [nx, ny];
-  }
 
   drawUser(ctx, canvas) {
     ctx.beginPath();
@@ -47,9 +33,27 @@ class Bullet {
     ctx.fillStyle = "black";
     ctx.fill();
   }
-  updatePosition() {
-    this.x += this.dx * this.speed;
-    this.y += this.dy * this.speed;
+  updatePosition(deltaTime) {
+    // Move along velocity
+    this.x += this.dx * this.speed * deltaTime;
+    this.y += this.dy * this.speed * deltaTime;
+
+    // Optional: smoothly correct to server position
+    if (this.serverX !== undefined && this.serverY !== undefined) {
+      const alpha = 0.1; // smoothing factor
+      this.x += (this.serverX - this.x) * alpha;
+      this.y += (this.serverY - this.y) * alpha;
+    }
+  }
+  applyServerUpdate(sb) {
+    // Smoothly interpolate to server position
+    const now = performance.now();
+    this.lastServerX = sb.x;
+    this.lastServerY = sb.y;
+    this.dx = sb.dx;
+    this.dy = sb.dy;
+    this.speed = sb.speed;
+    this.lastUpdate = now;
   }
   isCollidingWithPlayer(ox, oy) {
     if (this.y + 4 > oy - 15 && this.y < oy + 15) {

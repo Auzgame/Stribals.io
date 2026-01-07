@@ -50,7 +50,7 @@ module.exports = class Player {
             this.selectedGun.damage,
             this.rotation,
             1000,
-            20
+            100
           );
           //console.log(Bul);
           return Bul;
@@ -75,7 +75,7 @@ module.exports = class Player {
               this.selectedGun.damage,
               this.rotation,
               350,
-              40
+              100
             )
           );
           Bul.push(
@@ -86,7 +86,7 @@ module.exports = class Player {
               this.selectedGun.damage,
               this.rotation - 2,
               350,
-              40
+              100
             )
           );
           Bul.push(
@@ -97,7 +97,7 @@ module.exports = class Player {
               this.selectedGun.damage,
               this.rotation - 4,
               350,
-              40
+              100
             )
           );
           Bul.push(
@@ -108,7 +108,7 @@ module.exports = class Player {
               this.selectedGun.damage,
               this.rotation + 2,
               350,
-              40
+              100
             )
           );
           Bul.push(
@@ -119,7 +119,7 @@ module.exports = class Player {
               this.selectedGun.damage,
               this.rotation + 4,
               350,
-              40
+              100
             )
           );
           //console.log(Bul);
